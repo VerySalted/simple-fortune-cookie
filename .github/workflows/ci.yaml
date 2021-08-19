@@ -30,6 +30,30 @@ jobs:
       - name: Test GO
         run: chmod +x ./ci/main_test.sh && ./ci/main_test.sh
 
+  backend-lint:
+    name: Backend lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+
+          working-directory: ./backend
+
+  frontend-lint:
+    name: Frontend lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+
+          working-directory: ./frontend
+
   frontend-docker-image:
     runs-on: ubuntu-latest
     needs: [clone-down, frontend-tests]
