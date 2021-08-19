@@ -1,5 +1,5 @@
 name: GO CI
-on: pull-request
+on: pull_request
 env:
   docker_username: ${{ secrets.DOCKER_USERNAME }}
   docker_password: ${{ secrets.DOCKER_PASSWORD }}
