@@ -98,3 +98,5 @@ jobs:
           kubeconfig: ${{ secrets.KUBE_CONFIG }} # Use secret (https://developer.github.com/actions/managing-workflows/storing-secrets/)
       - name: Deploy to Cluster
         run: kubectl apply -f ./deployment
+
+just testing
