@@ -41,8 +41,8 @@ and squash the commits on this one.
 - [x] 02-run-app.
 - [x] 02-containers.
 - [ ] 02-testing.
-- [ ] 02-container-registry.
+- [x] 02-container-registry.
 - [ ] 02-cd.
 - [ ] 02-container-orchestration.
-- [ ] 02-automation.
+- [x] 02-automation.
 - [x] 02-database.
