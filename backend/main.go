@@ -72,7 +72,10 @@ func (h *fortuneHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
+	_, err = w.Write(jsonBytes)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (h *fortuneHandler) Random(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +124,10 @@ func (h *fortuneHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("fortune not found"))
+		_, err := w.Write([]byte("fortune not found"))
+		if err != nil {
+			panic(err)
+		}
 		return
 	}
 	jsonBytes, err := json.Marshal(u)
@@ -130,7 +136,10 @@ func (h *fortuneHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
+	_, err = w.Write(jsonBytes)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (h *fortuneHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -156,17 +165,26 @@ func (h *fortuneHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
+	_, err = w.Write(jsonBytes)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func internalServerError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte("internal server error"))
+	_, err := w.Write([]byte("internal server error"))
+	if err != nil {
+		panic(err)
+	}
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("not found"))
+	_, err := w.Write([]byte("not found"))
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
@@ -177,6 +195,8 @@ func main() {
 	mux.Handle("/fortunes", fortuneH)
 	mux.Handle("/fortunes/", fortuneH)
 
-	http.ListenAndServe(":9000", mux)
-
+	err := http.ListenAndServe(":9000", mux)
+	if err != nil {
+		panic(err)
+	}
 }

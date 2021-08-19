@@ -1,5 +1,8 @@
-name: GO CI
-on: push
+name: Build, test, deploy
+on:
+  push:
+    branches:
+      - master
 env:
   docker_username: ${{ secrets.DOCKER_USERNAME }}
   docker_password: ${{ secrets.DOCKER_PASSWORD }}
@@ -26,6 +29,30 @@ jobs:
           path: .
       - name: Test GO
         run: chmod +x ./ci/main_test.sh && ./ci/main_test.sh
+
+  backend-lint:
+    name: Backend lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+
+          working-directory: ./backend
+
+  frontend-lint:
+    name: Frontend lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+
+          working-directory: ./frontend
 
   frontend-docker-image:
     runs-on: ubuntu-latest

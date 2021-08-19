@@ -1,33 +1,102 @@
-  Test:
-    runs-on: [self-hosted]
-    needs: Clone-down
-    container: gradle:6-jdk11
+name: GO CI
+on:
+  push:
+    branches:
+      - master
+env:
+  docker_username: ${{ secrets.DOCKER_USERNAME }}
+  docker_password: ${{ secrets.DOCKER_PASSWORD }}
+jobs:
+  clone-down:
+    name: clone down repo
+    runs-on: ubuntu-latest
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: code
-          path: .
-      - name: Test with Gradle
-        run: chmod +x ci/unit-test-app.sh && ci/unit-test-app.sh
-  Build:
-    runs-on: [self-hosted]
-    needs: Clone-down
-    container: gradle:6-jdk11
-    steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: code
-          path: .
-      - name: Build with Gradle
-        run: chmod +x ci/build-app.sh && ci/build-app.sh
+      - uses: actions/checkout@v2
       - name: Upload Repo
         uses: actions/upload-artifact@v2
         with:
           name: code
           path: .
 
+  frontend-tests:
+    runs-on: ubuntu-latest
+    needs: [clone-down]
+    steps:
+      - name: Download code
+        uses: actions/download-artifact@v2
+        with:
+          name: code
+          path: .
+      - name: Test GO
+        run: chmod +x ./ci/main_test.sh && ./ci/main_test.sh
 
+  frontend-docker-image:
+    runs-on: ubuntu-latest
+    needs: [clone-down, frontend-tests]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
 
-    needs: [Build, Test]
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: simplefortunecookielmao/sfc-frontend
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  backend-docker-image:
+    runs-on: ubuntu-latest
+    needs: [clone-down, frontend-tests]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: simplefortunecookielmao/sfc-backend
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy_to_kubernetes_cluster:
+    name: Deploy to Kubernetes Cluster
+    needs: [frontend-docker-image, backend-docker-image]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Set Kubernetes Context
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }} # Use secret (https://developer.github.com/actions/managing-workflows/storing-secrets/)
+      - name: Deploy to Cluster
+        run: kubectl apply -f ./deployment
+
+just testing
