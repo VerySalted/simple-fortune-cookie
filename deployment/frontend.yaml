@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-frontend
+  labels:
+    app: deployment-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-frontend
+  template:
+    metadata:
+      labels:
+        app: deployment-frontend
+    spec:
+      containers:
+      - name: deployment-frontend
+        image: simplefortunecookielmao/sfc-frontend:master
+        env:
+          - name: BACKEND_DNS
+            value: service-backend
